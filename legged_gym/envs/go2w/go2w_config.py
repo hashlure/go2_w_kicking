@@ -162,6 +162,6 @@ class GO2WRoughCfgPPO( LeggedRobotCfgPPO ):
         experiment_name = 'rough_go2w'
         num_steps_per_env = 48 # per iteration
         max_iterations = 30000
-        load_run = "/home/hu/csq/DreamWaQ/legged_gym/logs/rough_go2w/May15_19-35-55_blind_50_1_40_0.5_trmeish"
+        load_run = -1
         checkpoint =-1
   

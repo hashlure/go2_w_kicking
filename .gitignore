@@ -160,3 +160,9 @@ cython_debug/
 
 # logs
 logs
+
+# model weights / exported policies
+*.pt
+*.pth
+*.ckpt
+*.onnx

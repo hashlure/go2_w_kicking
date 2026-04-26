@@ -71,6 +71,18 @@ def parse_sim_params(args, cfg):
     return sim_params
 
 def get_load_path(root, load_run=-1, checkpoint=-1):
+    if isinstance(checkpoint, str):
+        expanded_checkpoint = os.path.expanduser(checkpoint)
+        if os.path.isabs(expanded_checkpoint) or os.path.isfile(expanded_checkpoint):
+            if not os.path.isfile(expanded_checkpoint):
+                raise ValueError("Checkpoint file does not exist: " + checkpoint)
+            return expanded_checkpoint
+        if checkpoint == "-1":
+            checkpoint = -1
+
+    if isinstance(load_run, str) and load_run == "-1":
+        load_run = -1
+
     try:
         runs = os.listdir(root)
         #TODO sort by date to handle change of month
@@ -112,6 +124,8 @@ def update_cfg_from_args(env_cfg, cfg_train, args):
             cfg_train.runner.experiment_name = args.experiment_name
         if args.run_name is not None:
             cfg_train.runner.run_name = args.run_name
+        if args.load_experiment_name is not None:
+            cfg_train.runner.load_experiment_name = args.load_experiment_name
         if args.load_run is not None:
             cfg_train.runner.load_run = args.load_run
         if args.checkpoint is not None:
@@ -121,12 +135,13 @@ def update_cfg_from_args(env_cfg, cfg_train, args):
 
 def get_args():
     custom_parameters = [
-        {"name": "--task", "type": str, "default": "go2", "help": "Resume training or start testing from a checkpoint. Overrides config file if provided."},
+        {"name": "--task", "type": str, "default": "go2w", "help": "Resume training or start testing from a checkpoint. Overrides config file if provided."},
         {"name": "--resume", "action": "store_true", "default": False,  "help": "Resume training from a checkpoint"},
         {"name": "--experiment_name", "type": str,  "help": "Name of the experiment to run or load. Overrides config file if provided."},
         {"name": "--run_name", "type": str,  "help": "Name of the run. Overrides config file if provided."},
+        {"name": "--load_experiment_name", "type": str,  "help": "Experiment name to load from when resume=True. If omitted, uses the current experiment name."},
         {"name": "--load_run", "type": str,  "help": "Name of the run to load when resume=True. If -1: will load the last run. Overrides config file if provided."},
-        {"name": "--checkpoint", "type": int,  "help": "Saved model checkpoint number. If -1: will load the last checkpoint. Overrides config file if provided."},
+        {"name": "--checkpoint", "type": str,  "help": "Saved model checkpoint number or path. If -1: will load the last checkpoint. Overrides config file if provided."},
         
         {"name": "--headless", "action": "store_true", "default": False, "help": "Force display off at all times"},
         {"name": "--horovod", "action": "store_true", "default": False, "help": "Use horovod for multi-gpu training"},
@@ -134,6 +149,13 @@ def get_args():
         {"name": "--num_envs", "type": int, "help": "Number of environments to create. Overrides config file if provided."},
         {"name": "--seed", "type": int, "help": "Random seed. Overrides config file if provided."},
         {"name": "--max_iterations", "type": int, "help": "Maximum number of training iterations. Overrides config file if provided."},
+        {"name": "--record_video", "action": "store_true", "default": False, "help": "Record play.py frames and encode them into a video file."},
+        {"name": "--video_dir", "type": str, "help": "Directory for play.py videos. Defaults to logs/<experiment>/videos."},
+        {"name": "--video_name", "type": str, "help": "Base filename for play.py video output."},
+        {"name": "--video_steps", "type": int, "help": "Number of policy steps to run while recording."},
+        {"name": "--video_frame_stride", "type": int, "help": "Record one frame every N policy steps."},
+        {"name": "--video_fps", "type": int, "help": "Playback FPS for encoded play.py videos."},
+        {"name": "--video_format", "type": str, "help": "Requested output format for play.py videos: mp4 or gif."},
     ]
     # parse arguments
     args = gymutil.parse_arguments(

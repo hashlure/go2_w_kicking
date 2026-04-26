@@ -1,4 +1,5 @@
 
+import os
 import sys
 from isaacgym import gymapi
 from isaacgym import gymutil
@@ -23,9 +24,11 @@ class BaseTask():
         else:
             self.device = 'cpu'
 
+        self.enable_offscreen_render = os.getenv("LEGGED_GYM_OFFSCREEN_RENDER", "0").lower() in ("1", "true", "yes")
+
         # graphics device for rendering, -1 for no rendering
         self.graphics_device_id = self.sim_device_id
-        if self.headless == True:
+        if self.headless == True and not self.enable_offscreen_render:
             self.graphics_device_id = -1
 
         self.num_envs = cfg.env.num_envs

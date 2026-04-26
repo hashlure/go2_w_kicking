@@ -1,0 +1,1 @@
+# Package marker for the go2w walk pretraining task.
