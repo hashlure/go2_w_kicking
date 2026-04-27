@@ -130,7 +130,7 @@ ang_vel_yaw = [0, 0]
 
 ### 用途
 
-`go2w_walk_pretrain` 是平地行走预训练任务。它和 `go2w_kick` 保持同样的 actor 输入维度 79，但没有真实球，因此最后 6 维球信息填 0。
+`go2w_walk_pretrain` 是平地行走预训练任务。它和 `go2w_kick` 保持同样的 actor 输入维度 76，但没有真实球，因此最后 3 维球相对位置信息填 0。
 
 这样做的目的通常是：
 
@@ -210,7 +210,7 @@ resampling_time = 10.0
 
 ### Actor 观测
 
-`go2w_walk_pretrain` 的 actor 观测是 79 维：
+`go2w_walk_pretrain` 的 actor 观测是 76 维：
 
 | 维度范围 | 内容 | 维度 |
 | --- | --- | --- |
@@ -222,12 +222,11 @@ resampling_time = 10.0
 | `41:57` | `dof_pos_obs`，轮子位置置零 | 16 |
 | `57:73` | `actions` | 16 |
 | `73:76` | `zero_ball_pos_body`，全 0 | 3 |
-| `76:79` | `zero_ball_vel_body`，全 0 | 3 |
 
 总计：
 
 ```text
-3 + 3 + 3 + 16 + 16 + 16 + 16 + 3 + 3 = 79
+3 + 3 + 3 + 16 + 16 + 16 + 16 + 3 = 76
 ```
 
 ### 和 `go2w` 的区别
@@ -236,9 +235,9 @@ resampling_time = 10.0
 
 - 地形从台阶/粗糙地形改为平地 `plane`
 - 随机命令更丰富，包含前后、左右、yaw 旋转
-- actor 观测从 73 维增加到 79 维
-- 增加最后 6 维全 0 的球信息，用来和踢球任务对齐
-- `num_privileged_obs` 从 `263` 改为 `82`
+- actor 观测从 73 维增加到 76 维
+- 增加最后 3 维全 0 的球相对位置信息，用来和踢球任务对齐
+- `num_privileged_obs` 从 `263` 改为 `79`
 
 ## 5. `go2w_kick`
 
@@ -311,11 +310,11 @@ lin_vel_y = [0.0, 0.0]
 ang_vel_yaw = [0.0, 0.0]
 ```
 
-所以训练时 actor 观测里的 command 维度基本恒为 0。踢球策略主要依赖球的相对位置和速度，而不是外部速度指令。
+所以训练时 actor 观测里的 command 维度基本恒为 0。踢球策略主要依赖球的相对位置，而不是外部速度指令。
 
 ### Actor 观测
 
-`go2w_kick` 的 actor 观测同样是 79 维：
+`go2w_kick` 的 actor 观测同样是 76 维：
 
 | 维度范围 | 内容 | 维度 |
 | --- | --- | --- |
@@ -327,19 +326,19 @@ ang_vel_yaw = [0.0, 0.0]
 | `41:57` | `dof_pos_obs`，轮子位置置零 | 16 |
 | `57:73` | `actions` | 16 |
 | `73:76` | `ball_pos_body`，球在机器人坐标系下的相对位置 | 3 |
-| `76:79` | `ball_vel_body`，球在机器人坐标系下的速度 | 3 |
 
 与 `go2w_walk_pretrain` 的区别是：
 
-- `go2w_walk_pretrain` 最后 6 维是全 0
-- `go2w_kick` 最后 6 维是真实球信息
+- `go2w_walk_pretrain` 最后 3 维是全 0
+- `go2w_kick` 最后 3 维是真实球相对位置
+- 当前 actor 不再观测球速度，球速度只在环境内部用于判断有效踢球和计算奖励
 
 ### Critic privileged observation
 
-critic 观测是 82 维：
+critic 观测是 79 维：
 
 ```text
-actor_obs 79维 + base_lin_vel * 2.0 3维 = 82维
+actor_obs 76维 + base_lin_vel * 2.0 3维 = 79维
 ```
 
 也就是说 actor 看不到真实 base 线速度，critic 可以看到。
@@ -527,10 +526,9 @@ go2w_rl_gym/logs/<experiment_name>/videos/<video_name>.mp4
 | 项目 | `go2w` | `go2w_walk_pretrain` | `go2w_kick` |
 | --- | --- | --- | --- |
 | 地形 | 台阶/粗糙地形 | 平地 | 平地 |
-| actor obs | 73 | 79 | 79 |
-| privileged obs | 263 | 82 | 82 |
+| actor obs | 73 | 76 | 76 |
+| privileged obs | 263 | 79 | 79 |
 | 是否有球 | 否 | 否，球信息填 0 | 是 |
 | command | 前向速度随机 | 前后/左右/yaw 随机 | 全 0 |
 | 主要目标 | 前向运动/地形通过 | 平地速度跟踪预训练 | 踢球成功 |
 | 训练时长配置 | 30000 iter | 3000 iter | 10000 iter |
-
