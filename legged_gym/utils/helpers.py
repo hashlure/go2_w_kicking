@@ -84,10 +84,12 @@ def get_load_path(root, load_run=-1, checkpoint=-1):
         load_run = -1
 
     try:
-        runs = os.listdir(root)
+        runs = [
+            run for run in os.listdir(root)
+            if os.path.isdir(os.path.join(root, run)) and run not in ["exported", "videos"]
+        ]
         #TODO sort by date to handle change of month
         runs.sort()
-        if 'exported' in runs: runs.remove('exported')
         last_run = os.path.join(root, runs[-1])
     except:
         raise ValueError("No runs in this directory: " + root)
@@ -97,8 +99,13 @@ def get_load_path(root, load_run=-1, checkpoint=-1):
         load_run = os.path.join(root, load_run)
 
     if checkpoint==-1:
-        models = [file for file in os.listdir(load_run) if 'model' in file]
-        models.sort(key=lambda m: '{0:0>15}'.format(m))
+        models = [
+            file for file in os.listdir(load_run)
+            if file.startswith("model_") and file.endswith(".pt")
+        ]
+        if not models:
+            raise ValueError("No model_*.pt checkpoints in this directory: " + load_run)
+        models.sort(key=lambda m: int(m.split("_")[-1].split(".")[0]))
         model = models[-1]
     else:
         model = "model_{}.pt".format(checkpoint) 
