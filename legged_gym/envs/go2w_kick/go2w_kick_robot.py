@@ -414,7 +414,6 @@ class Go2wKick(Go2w):
         dof_pos_obs[:, self.wheel_indices] = 0.0
 
         ball_pos_body = quat_rotate_inverse(self.base_quat, self.ball_pos - self.base_pos)
-        ball_vel_body = quat_rotate_inverse(self.base_quat, self.ball_lin_vel)
 
         self.obs_buf = torch.cat(
             (
@@ -426,7 +425,6 @@ class Go2wKick(Go2w):
                 dof_pos_obs,
                 self.actions,
                 ball_pos_body,
-                ball_vel_body,
             ),
             dim=-1,
         )

@@ -22,7 +22,6 @@ class Go2wWalkPretrain(Go2w):
         dof_pos_obs[:, self.wheel_indices] = 0.0
 
         zero_ball_pos_body = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device)
-        zero_ball_vel_body = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device)
 
         self.obs_buf = torch.cat(
             (
@@ -34,7 +33,6 @@ class Go2wWalkPretrain(Go2w):
                 dof_pos_obs,
                 self.actions,
                 zero_ball_pos_body,
-                zero_ball_vel_body,
             ),
             dim=-1,
         )

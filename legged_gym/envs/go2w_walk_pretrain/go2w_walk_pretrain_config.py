@@ -3,8 +3,8 @@ from legged_gym.envs.go2w.go2w_config import GO2WRoughCfg, GO2WRoughCfgPPO
 
 class Go2wWalkPretrainCfg(GO2WRoughCfg):
     class env(GO2WRoughCfg.env):
-        num_observations = 79
-        num_privileged_obs = 82
+        num_observations = 76
+        num_privileged_obs = 79
         num_actions = 16
         episode_length_s = 10.0
 
